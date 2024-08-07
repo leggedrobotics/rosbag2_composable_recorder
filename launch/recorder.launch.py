@@ -21,48 +21,90 @@ from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration as LaunchConfig
 from launch.actions import DeclareLaunchArgument as LaunchArg
 from launch.actions import OpaqueFunction
+from launch_ros.substitutions import FindPackageShare
+from launch import LaunchDescription
+import os
+import yaml
 
-
+def load_yaml(file_path):
+    with open(file_path, "r") as file:
+        return yaml.safe_load(file)
+    
+    
 def launch_setup(context, *args, **kwargs):
     """Create composable node."""
-    bag_prefix = LaunchConfig('bag_prefix')
-    container = ComposableNodeContainer(
-            name='composable_recorder_container',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
-            composable_node_descriptions=[
-                #
-                # add further ComposableNode elements here, e.g. the driver.
-                # make sure to set use_intra_process_comms to True
-                #
-                ComposableNode(
-                    package='rosbag2_composable_recorder',
-                    plugin='rosbag2_composable_recorder::ComposableRecorder',
-                    name="recorder",
-                    # set topics etc here
-                    parameters=[{'topics': ['/your_topic_here'],
-                                 'storage_id': 'sqlite3',
-                                 'record_all': False,
-                                 'disable_discovery': False,
-                                 'serialization_format': 'cdr',
-                                 'start_recording_immediately': False,
-                                 'bag_prefix': bag_prefix}],
-                    remappings=[],
-                    extra_arguments=[{'use_intra_process_comms': True}],
-                )
-            ],
-            output='screen',
-    )
-    return [container]
+    # Load configurations from YAML files
+    camera_config = load_yaml("/data/workspaces/isaac_ros-dev/src/rosbag2_composable_recorder/config/cameras_config.yaml")
+    
+    ls = []
+    for config in camera_config["cameras"]:            
+        # TODO check if mt is needed  
+        n = config["name"]
+        bag_prefix = f"/data/interprocess/recorder_abc_{config['name']}"
+        ls.append( ComposableNodeContainer(
+                name=f'v4l2_camera_container_{config["name"]}',
+                namespace='',
+                package='rclcpp_components',
+                executable='component_container_mt',
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package="v4l2_camera",
+                        plugin="v4l2_camera::V4L2Camera",
+                        name=config["name"],
+                        namespace=config["namespace"],
+                        remappings=[
+                            ("image_raw", f"{config['name']}/image_raw"),
+                            ("image_raw/theora", f"{config['name']}/image_raw/theora"),
+                            ("camera_info", f"{config['name']}/camera_info"),
+                            ("image_raw/compressed", f"{config['name']}/image_raw/compressed"),
+                        ],
+                        parameters=[
+                            {
+                                "video_device": config["video_device"],
+                                "hdr_enable": config["hdr_enable"],
+                                "frame_id":  config["frame_id"],
+                                "use_image_transport": True,
+                                "output_encoding": "rgb8",
+                                "use_kernel_buffer_ts": True,
+                                "use_sensor_data_qos": True,
+                                "disable_pub_plugins": ["image_transport/compressedDepth"],  # Disabling the compressedDepth plugin
+                            }
+                        ],
+                        extra_arguments=[{"use_intra_process_comms": True}],
+                    ),
+                    ComposableNode(
+                        package='rosbag2_composable_recorder',
+                        plugin='rosbag2_composable_recorder::ComposableRecorder',
+                        name=f"recorder_" + n,
+                        # set topics etc here
+                        parameters=[{'topics': [f"{config['namespace']}{config['name']}/image_raw/compressed", f"{config['namespace']}{config['name']}/camera_info"],
+                                        'storage_id': 'mcap',
+                                        'record_all': False,
+                                        'disable_discovery': False,
+                                        'serialization_format': 'cdr',
+                                        'start_recording_immediately': False,
+                                        'bag_path': "/data/",
+                                        'bag_name': f"_jetson_{config['name']}"
+                                        }],
+                        remappings=[],
+                        extra_arguments=[{'use_intra_process_comms': True}],
+                    ),               
+                ],
+                output='screen',
+        ))
+    return ls
 
 
 def generate_launch_description():
     """Create composable node by calling opaque function.
     This creates a context such that string arguments can be extracted
     """
-    return launch.LaunchDescription([
-        LaunchArg('bag_prefix', default_value=['rosbag2_'],
-                  description='prefix of rosbag'),
-        OpaqueFunction(function=launch_setup)
-        ])
+    launch_arguments = [
+    ]
+
+    return LaunchDescription(
+        [
+            *launch_arguments,
+            OpaqueFunction(function=launch_setup),
+        ]
+    )

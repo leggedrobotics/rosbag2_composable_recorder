@@ -20,6 +20,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rosbag2_transport/recorder.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <rosbag2_composable_recorder/srv/start_recording.hpp>
 
 namespace rosbag2_composable_recorder
 {
@@ -30,13 +31,20 @@ public:
   ~ComposableRecorder();
 
 private:
+  std::string bag_name;
+  std::string bag_path;
   // service callback function
   bool startRecording(
+    const std::shared_ptr<rosbag2_composable_recorder::srv::StartRecording::Request> req,
+    std::shared_ptr<rosbag2_composable_recorder::srv::StartRecording::Response> res);
+
+  bool stopRecording(
     const std::shared_ptr<std_srvs::srv::Trigger::Request> req,
     std::shared_ptr<std_srvs::srv::Trigger::Response> res);
 
   // ---- variables
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
+  rclcpp::Service<rosbag2_composable_recorder::srv::StartRecording>::SharedPtr service_start_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_stop_;
   bool isRecording_{false};
 };
 
