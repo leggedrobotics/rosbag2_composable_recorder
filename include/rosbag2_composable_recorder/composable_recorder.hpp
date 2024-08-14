@@ -33,6 +33,8 @@ public:
 private:
   std::string bag_name;
   std::string bag_path;
+  std::string storage_id;
+  int max_cache_size;
   // service callback function
   bool startRecording(
     const std::shared_ptr<rosbag2_composable_recorder::srv::StartRecording::Request> req,

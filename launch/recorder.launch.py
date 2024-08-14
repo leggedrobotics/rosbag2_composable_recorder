@@ -35,17 +35,18 @@ def launch_setup(context, *args, **kwargs):
     """Create composable node."""
     # Load configurations from YAML files
     camera_config = load_yaml("/data/workspaces/isaac_ros-dev/src/rosbag2_composable_recorder/config/cameras_config.yaml")
-    
     ls = []
     for config in camera_config["cameras"]:            
         # TODO check if mt is needed  
         n = config["name"]
-        bag_prefix = f"/data/interprocess/recorder_abc_{config['name']}"
+
+        topic_name = f"{config['namespace']}{config['name']}/image_raw"
+        print("Current recording setting for images:", topic_name)
         ls.append( ComposableNodeContainer(
-                name=f'v4l2_camera_container_{config["name"]}',
-                namespace='',
+                name=f'container_{config["name"]}',
+                namespace=config["namespace"],
                 package='rclcpp_components',
-                executable='component_container_mt',
+                executable='component_container',
                 composable_node_descriptions=[
                     ComposableNode(
                         package="v4l2_camera",
@@ -66,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
                                 "use_image_transport": True,
                                 "output_encoding": "rgb8",
                                 "use_kernel_buffer_ts": True,
-                                "use_sensor_data_qos": True,
+                                "use_sensor_data_qos": False,
                                 "disable_pub_plugins": ["image_transport/compressedDepth"],  # Disabling the compressedDepth plugin
                             }
                         ],
@@ -75,9 +76,10 @@ def launch_setup(context, *args, **kwargs):
                     ComposableNode(
                         package='rosbag2_composable_recorder',
                         plugin='rosbag2_composable_recorder::ComposableRecorder',
-                        name=f"recorder_" + n,
+                        name="recorder_" + n,
+                        namespace=config["namespace"],
                         # set topics etc here
-                        parameters=[{'topics': [f"{config['namespace']}{config['name']}/image_raw/compressed", f"{config['namespace']}{config['name']}/camera_info"],
+                        parameters=[{'topics': [topic_name, f"{config['namespace']}{config['name']}/camera_info"],
                                         'storage_id': 'mcap',
                                         'record_all': False,
                                         'disable_discovery': False,

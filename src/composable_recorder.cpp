@@ -89,24 +89,32 @@ ComposableRecorder::ComposableRecorder(const rclcpp::NodeOptions & options)
 #endif
   }
 
-  if (declare_parameter<bool>("start_recording_immediately", false)) {
-    record();
-  } else {
-    std::string service_name = std::string(get_name()) + "/start_recording";
-    service_start_ = create_service<rosbag2_composable_recorder::srv::StartRecording>(
-      service_name,
-      std::bind(
-        &ComposableRecorder::startRecording, this, std::placeholders::_1, std::placeholders::_2));
-  }
-  std::string service_name = std::string(get_name()) + "/stop_recording";
-  service_stop_ = create_service<std_srvs::srv::Trigger>(
-      "start_recording",
-      std::bind(
-        &ComposableRecorder::startRecording, this, std::placeholders::_1, std::placeholders::_2));
+
+
+  storage_id = declare_parameter<std::string>("storage_id", "sqlite3");
+  max_cache_size = declare_parameter<int>("max_cache_size", 100 * 1024 * 1024);
+
 
   bag_path = declare_parameter<std::string>("bag_path", "/data/");
   bag_name = declare_parameter<std::string>("bag_name", "_test_bag");
   std::string a = get_time_stamp();
+
+
+  if (declare_parameter<bool>("start_recording_immediately", false)) {
+    record();
+  } else {
+    std::string service_name_start = std::string(get_name()) + "/start_recording";
+    service_start_ = create_service<rosbag2_composable_recorder::srv::StartRecording>(
+      service_name_start,
+      std::bind(
+        &ComposableRecorder::startRecording, this, std::placeholders::_1, std::placeholders::_2));
+  }
+  std::string service_name_stop = std::string(get_name()) + "/stop_recording";
+  service_stop_ = create_service<std_srvs::srv::Trigger>(
+      service_name_stop,
+      std::bind(
+        &ComposableRecorder::stopRecording, this, std::placeholders::_1, std::placeholders::_2));
+
 }
 
 bool ComposableRecorder::stopRecording(
@@ -126,6 +134,7 @@ bool ComposableRecorder::stopRecording(
     res->success = false;
     res->message = "cannot stop recording - we are not recording!";
   }
+  isRecording_ = false;
   return (true);
 }
 
@@ -147,8 +156,9 @@ bool ComposableRecorder::startRecording(
       #else
         rosbag2_storage::StorageOptions & sopt = storage_options_;
       #endif
-      sopt.storage_id = declare_parameter<std::string>("storage_id", "sqlite3");
-      sopt.max_cache_size = declare_parameter<int>("max_cache_size", 100 * 1024 * 1024);
+      
+      sopt.storage_id = storage_id;
+      sopt.max_cache_size = max_cache_size;
       sopt.uri = bag_path + req->timestamp + "/" + req->timestamp + bag_name;
       
       createFolder(bag_path + req->timestamp);
