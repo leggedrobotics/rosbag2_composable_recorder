@@ -66,7 +66,6 @@ def launch_setup(context, *args, **kwargs):
                                 "frame_id":  config["frame_id"],
                                 "use_image_transport": True,
                                 "output_encoding": "rgb8",
-                                "camera_info_url": f"/home/rsl/grand_tour/git/grand_tour_box/box_core/box_calibration/calibration/hdr/{config["name"]}",
                                 "use_kernel_buffer_ts": True,
                                 "use_sensor_data_qos": False,
                                 "disable_pub_plugins": ["image_transport/compressedDepth"],  # Disabling the compressedDepth plugin
