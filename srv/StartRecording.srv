@@ -1,4 +1,5 @@
 string timestamp
+string[] topics
 ---
 bool success
 string message

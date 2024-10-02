@@ -58,38 +58,26 @@ ComposableRecorder::ComposableRecorder(const rclcpp::NodeOptions & options)
     rosbag2_transport::RecordOptions(), "recorder",
     rclcpp::NodeOptions(options).start_parameter_event_publisher(false))
 {
-  std::vector<std::string> topics =
-    declare_parameter<std::vector<std::string>>("topics", std::vector<std::string>());
-  for (const auto & topic : topics) {
-    RCLCPP_INFO_STREAM(get_logger(), "recording topic: " << topic);
-  }
   // set storage options were originally here
 
+  // set storage options were orginially here
+
   // set recorder options
-#ifdef USE_GET_RECORD_OPTIONS
-  rosbag2_transport::RecordOptions & ropt = get_record_options();
-#else
+  #ifdef USE_GET_RECORD_OPTIONS
+    rosbag2_transport::RecordOptions & ropt = get_record_options();
+  #else
   rosbag2_transport::RecordOptions & ropt = record_options_;
-#endif
-#ifdef USE_ALL_TOPICS
-  ropt.all_topics = declare_parameter<bool>("record_all", false);
-#else
-  ropt.all = declare_parameter<bool>("record_all", false);
-#endif
-  ropt.is_discovery_disabled = declare_parameter<bool>("disable_discovery", false);
-  ropt.rmw_serialization_format = declare_parameter<std::string>("serialization_format", "cdr");
-  ropt.topic_polling_interval = std::chrono::milliseconds(100);
-  ropt.topics.insert(ropt.topics.end(), topics.begin(), topics.end());
+  #endif
 
-  if (ropt.is_discovery_disabled) {
-#ifdef USE_STOP_DISCOVERY
-    stop_discovery();
-#else
-    stop_discovery_ = ropt.is_discovery_disabled;
-#endif
-  }
-
-
+  #ifdef USE_ALL_TOPICS
+    ropt.all_topics = false;
+  #else
+    ropt.all = false;
+  #endif
+    ropt.is_discovery_disabled = declare_parameter<bool>("disable_discovery", false);
+    ropt.rmw_serialization_format = declare_parameter<std::string>("serialization_format", "cdr");
+    ropt.topic_polling_interval = std::chrono::milliseconds(100);
+    
 
   storage_id = declare_parameter<std::string>("storage_id", "sqlite3");
   max_cache_size = declare_parameter<int>("max_cache_size", 100 * 1024 * 1024);
@@ -128,7 +116,12 @@ bool ComposableRecorder::stopRecording(
     stop();
     res->message = "stoped recording!";
     res->success = true;
-
+    // RCLCPP_WARN(get_logger(), "manually starting recording!");
+    // storage_options_.uri = bag_path + "restart/manual_" + bag_name;
+    // record();
+    // RCLCPP_WARN(get_logger(), "stopping recording again!");
+    // stop();
+    // RCLCPP_WARN(get_logger(), "stopped recording again!");
   } else {
     RCLCPP_INFO(get_logger(), "cannot stop recording - we are not recording...");
     res->success = false;
@@ -143,6 +136,30 @@ bool ComposableRecorder::startRecording(
   std::shared_ptr<rosbag2_composable_recorder::srv::StartRecording::Response> res)
 {
   (void)req;
+    std::vector<std::string> topics = req->topics;
+    for (const auto & topic : topics) {
+      RCLCPP_INFO_STREAM(get_logger(), "recording topic: " << topic);
+    }
+
+    // set recorder options
+    // #ifdef USE_GET_RECORD_OPTIONS
+      // rosbag2_transport::RecordOptions & ropt = get_record_options();
+    // #else
+      rosbag2_transport::RecordOptions & ropt = record_options_;
+    // #endif
+
+    // Remove all previous topics before adding new ones.
+    ropt.topics.clear();
+    ropt.topics.insert(ropt.topics.end(), topics.begin(), topics.end());
+
+    if (ropt.is_discovery_disabled) {
+      #ifdef USE_STOP_DISCOVERY
+          stop_discovery();
+      #else
+          stop_discovery_ = ropt.is_discovery_disabled;
+      #endif
+    }
+
   res->success = false;
   if (isRecording_) {
     RCLCPP_WARN(get_logger(), "already recording!");

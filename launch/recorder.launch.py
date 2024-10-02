@@ -79,8 +79,7 @@ def launch_setup(context, *args, **kwargs):
                         name="recorder_" + n,
                         namespace=config["namespace"],
                         # set topics etc here
-                        parameters=[{'topics': [topic_name, f"{config['namespace']}{config['name']}/camera_info"],
-                                        'storage_id': 'mcap',
+                        parameters=[{   'storage_id': 'mcap',
                                         'record_all': False,
                                         'disable_discovery': False,
                                         'serialization_format': 'cdr',
