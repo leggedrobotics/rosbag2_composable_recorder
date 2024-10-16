@@ -1,16 +1,16 @@
 cameras:
   - name: hdr_left
     namespace: /gt_box/
-    video_device: /dev/video4
+    video_device: /dev/hdr_left
     hdr_enable: False
     frame_id: hdr_left
   - name: hdr_front
     namespace: /gt_box/
-    video_device: /dev/video2
+    video_device: /dev/hdr_front
     hdr_enable: False
     frame_id: hdr_front
   - name: hdr_right
     namespace: /gt_box/
-    video_device: /dev/video3
+    video_device: /dev/hdr_right
     hdr_enable: False
     frame_id: hdr_right
