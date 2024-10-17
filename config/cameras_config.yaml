@@ -4,13 +4,16 @@ cameras:
     video_device: /dev/hdr_left
     hdr_enable: False
     frame_id: hdr_left
+    camera_info_url: /workspaces/ros2_ws/src/box_calibration/box_calibration/calibration/hdr/hdr_left.yaml
   - name: hdr_front
     namespace: /gt_box/
     video_device: /dev/hdr_front
     hdr_enable: False
     frame_id: hdr_front
+    camera_info_url: /workspaces/ros2_ws/src/box_calibration/box_calibration/calibration/hdr/hdr_front.yaml
   - name: hdr_right
     namespace: /gt_box/
     video_device: /dev/hdr_right
     hdr_enable: False
     frame_id: hdr_right
+    camera_info_url: /workspaces/ros2_ws/src/box_calibration/box_calibration/calibration/hdr/hdr_right.yaml

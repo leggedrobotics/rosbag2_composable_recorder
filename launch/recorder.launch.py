@@ -64,6 +64,7 @@ def launch_setup(context, *args, **kwargs):
                                 "video_device": config["video_device"],
                                 "hdr_enable": config["hdr_enable"],
                                 "frame_id":  config["frame_id"],
+                                "camera_info_url": config["camera_info_url"],
                                 "use_image_transport": True,
                                 "output_encoding": "rgb8",
                                 "use_kernel_buffer_ts": True,
