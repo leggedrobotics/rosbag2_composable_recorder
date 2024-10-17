@@ -186,7 +186,7 @@ bool ComposableRecorder::startRecording(
       res->success = true;
       res->message = "started recoding!";
     } catch (const std::runtime_error & e) {
-      RCLCPP_WARN(get_logger(), "cannot toggle recording!");
+      RCLCPP_ERROR(get_logger(), "Error: cannot toggle recording! Exception: %s", e.what());
       res->message = "runtime error occurred: " + std::string(e.what());
     }
   }

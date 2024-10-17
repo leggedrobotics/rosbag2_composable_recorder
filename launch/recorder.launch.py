@@ -23,7 +23,6 @@ from launch.actions import DeclareLaunchArgument as LaunchArg
 from launch.actions import OpaqueFunction
 from launch_ros.substitutions import FindPackageShare
 from launch import LaunchDescription
-import os
 import yaml
 
 def load_yaml(file_path):
@@ -34,7 +33,15 @@ def load_yaml(file_path):
 def launch_setup(context, *args, **kwargs):
     """Create composable node."""
     # Load configurations from YAML files
-    camera_config = load_yaml("/data/workspaces/isaac_ros-dev/src/rosbag2_composable_recorder/config/cameras_config.yaml")
+
+    # Construct the path to the YAML file
+    camera_config_path = "/workspaces/ros2_ws/src/rosbag2_composable_recorder/config/cameras_config.yaml"
+
+    # Load the YAML configuration
+    camera_config = load_yaml(camera_config_path)
+    
+    print(camera_config)
+    print(camera_config_path)
     ls = []
     for config in camera_config["cameras"]:            
         # TODO check if mt is needed  
