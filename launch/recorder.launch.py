@@ -83,7 +83,7 @@ def launch_setup(context, *args, **kwargs):
                                 "disable_pub_plugins": ["image_transport/compressedDepth"],  # Disabling the compressedDepth plugin
                             }
                         ],
-                        extra_arguments=[{"use_intra_process_comms": True},  {"log_level": "DEBUG"}],
+                        extra_arguments=[{"use_intra_process_comms": True}],
                     ),
                     ComposableNode(
                         package='rosbag2_composable_recorder',
