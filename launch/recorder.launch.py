@@ -65,6 +65,8 @@ def launch_setup(context, *args, **kwargs):
                             ("image_raw/theora", f"{config['name']}/image_raw/theora"),
                             ("camera_info", f"{config['name']}/camera_info"),
                             ("image_raw/compressed", f"{config['name']}/image_raw/compressed"),
+                            ("kernel_timestamp", f"{config['name']}/kernel_timestamp"),
+                            ("v4l2_timestamp", f"{config['name']}/v4l2_timestamp"),
                         ],
                         parameters=[
                             {
@@ -74,7 +76,9 @@ def launch_setup(context, *args, **kwargs):
                                 "camera_info_url": config["camera_info_url"],
                                 "use_image_transport": True,
                                 "output_encoding": "rgb8",
-                                "use_kernel_buffer_ts": True,
+                                "use_kernel_buffer_ts": False,
+                                "publish_kernel_ts": True,
+                                "publish_v4l2_ts": True,
                                 "use_sensor_data_qos": False,
                                 "disable_pub_plugins": ["image_transport/compressedDepth"],  # Disabling the compressedDepth plugin
                             }
